@@ -16,7 +16,7 @@ against a hand-labelled ground truth (`data/labelled_claims.jsonl`, 44 claims, b
 three corpora — `llmRun`, `tomoro-task`, this run's own `rainmaker` — before any verifier existed,
 so the checker could not be tuned to its own answer key).
 
-**Architecture**: `cli -> adapters -> services -> domain`, enforced by `import-linter` — `domain`
+**Architecture**: `cli -> services -> domain`, enforced by `import-linter` — `domain`
 and `services` may never import `anthropic`/`httpx`/`requests`; only `adapters/anthropic_client.py`
 does, confirmed live (temporarily adding a violating import and watching the gate fail).
 
