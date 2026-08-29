@@ -3,7 +3,10 @@ name = "claimcheck"
 version = "0.1.0"
 description = "Finds claims in docstrings/comments/markdown that the code contradicts."
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "anthropic>=1.2",
+    "python-dotenv>=1.2",
+]
 
 [project.scripts]
 claimcheck = "claimcheck.cli:main"
@@ -48,6 +51,10 @@ ignore = ["S101"]
 # its exception messages are deliberately inline prose the extractor reads,
 # not something worth a named exception subclass (TRY003).
 "tests/fixtures/**/*.py" = ["TRY003"]
+# adapters/anthropic_client.py tracks and prints real dollar spend after every live model call,
+# and the real SDK exception on any error -- an operator-facing cost/error signal this slice's
+# brief requires, not incidental debug output (T201).
+"src/claimcheck/adapters/anthropic_client.py" = ["T201"]
 
 [tool.mypy]
 files = ["src", "scripts", "tests"]
