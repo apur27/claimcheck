@@ -13,11 +13,12 @@ doesn't check claims about anything outside the repo it's pointed at.
 ```bash
 uv sync --all-extras
 uv run claimcheck path/to/a/repo        # scan a whole tree, print contradictions
-uv run claimcheck --diff                # scan only files staged in the current repo
+uv run claimcheck --diff path/to/a/repo # scan only files staged in that repo
 ```
 
-No API key, no network — the four deterministic verifiers (below) never import or execute the
-code they scan; they read it as text via Python's `ast` and `tokenize` modules only.
+No API key, no network — nothing in this pipeline imports or executes the code it scans. Claim
+extraction reads source as text via Python's `ast` and `tokenize` modules; the four deterministic
+verifiers (below) then settle each claim using `ast` only.
 
 ## The gate
 
@@ -30,14 +31,16 @@ make harness-check    # verifies this repo's own .claude/ scaffolding is well-fo
 ## Architecture
 
 ```
-cli -> adapters -> services -> domain
+cli -> services -> domain
 ```
 
 `domain` (claim model, the four verifiers, the scorer) and `services` (tree walking, claim
 collection, the eval runner) never import a vendor SDK — `import-linter` enforces this as a
 `forbidden` contract, and it's proven live in this repo's own test suite (a violating import was
 added, confirmed the gate catches it, then removed). Only `adapters/anthropic_client.py` imports
-`anthropic`, and only the model-backed verifier (out of the no-API-key path entirely) uses it.
+`anthropic`; `services/ports.py` defines the `Protocol` a vendor client must satisfy, so `services`
+never has to import `adapters` to use one, and only the model-backed verifier (out of the
+no-API-key path entirely) reaches it.
 
 **Why this layering**: the deterministic verifiers are the tool's actual reliability story — they
 need no key, no network, and no model call to run, so they had to be structurally incapable of
