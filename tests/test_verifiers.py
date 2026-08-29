@@ -15,6 +15,8 @@ verifier logic exists (RED) and after (GREEN).
 
 from pathlib import Path
 
+import pytest
+
 from claimcheck.domain.models import Claim
 from claimcheck.domain.verifiers import (
     Verdict,
@@ -27,6 +29,17 @@ from claimcheck.domain.verifiers import (
 
 FIXTURE_REPO = Path(__file__).resolve().parent / "fixtures" / "sample_repo"
 RAINMAKER_REPO = Path("/home/abhi/git/rainmaker")
+
+# The RainMaker cross-check tests below read a sibling repo that only exists on
+# a RainMaker orchestrator's own machine -- not vendored or fixtured here, so a
+# clean checkout (CI, another contributor) has no such path. Skip rather than
+# fail: these are a bonus sanity check against real hand-labelled data, not
+# part of this package's own coverage (that lives in the fixture-repo tests
+# above and in tests/test_scorer.py's run against data/labelled_claims.jsonl).
+requires_rainmaker_repo = pytest.mark.skipif(
+    not RAINMAKER_REPO.is_dir(),
+    reason="cross-check reads a sibling rainmaker checkout not vendored in this repo",
+)
 
 
 def _claim(**overrides: object) -> Claim:
@@ -241,6 +254,7 @@ def test_verify_returns_unverifiable_for_other_shape() -> None:
 # --- cross-check against data/labelled_claims.jsonl, real rainmaker files --
 
 
+@requires_rainmaker_repo
 def test_cross_check_rainmaker_harness_check_target_lines_agrees_with_label() -> None:
     """lc-030: `CLAUDE_MD_TARGET_LINES = 200` -- labelled `ok`, defaults_to, rainmaker."""
     claim = _claim(
@@ -255,6 +269,7 @@ def test_cross_check_rainmaker_harness_check_target_lines_agrees_with_label() ->
     assert verdict.reason == "ok"
 
 
+@requires_rainmaker_repo
 def test_cross_check_rainmaker_timesheet_min_sample_agrees_with_label() -> None:
     """lc-032: `MIN_SAMPLE = 8` -- labelled `ok`, defaults_to, rainmaker."""
     claim = _claim(
@@ -268,6 +283,7 @@ def test_cross_check_rainmaker_timesheet_min_sample_agrees_with_label() -> None:
     assert verdict.reason == "ok"
 
 
+@requires_rainmaker_repo
 def test_cross_check_rainmaker_codex_cli_doc_size_agrees_with_label() -> None:
     """lc-043: a claim about Codex CLI's own external docs -- labelled `unverifiable`.
 
