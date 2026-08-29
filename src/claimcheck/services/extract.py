@@ -12,7 +12,7 @@ import ast
 import io
 import re
 import tokenize
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from pathlib import Path
 
 from claimcheck.domain.models import Claim
@@ -40,11 +40,22 @@ def extract_claims(repo_root: Path) -> list[Claim]:
     Python files go through `ast.parse` and `tokenize.generate_tokens`
     only.
     """
+    return extract_claims_from_paths(repo_root, _iter_source_files(repo_root))
+
+
+def extract_claims_from_paths(repo_root: Path, paths: Iterable[Path]) -> list[Claim]:
+    """Return every claim found in `paths`, scoped instead of a whole-tree walk.
+
+    Reuses the same per-file extraction `extract_claims` uses -- callers
+    (e.g. `cli --diff`, scoped to the staged file list) get identical
+    claim shapes with no duplicated parsing logic. Paths whose suffix is
+    neither `.py` nor `.md` are silently skipped, same as a whole-tree walk.
+    """
     claims: list[Claim] = []
-    for path in _iter_source_files(repo_root):
+    for path in paths:
         if path.suffix == _PY_SUFFIX:
             claims.extend(_extract_python_claims(path, repo_root))
-        else:
+        elif path.suffix == _MD_SUFFIX:
             claims.extend(_extract_markdown_claims(path, repo_root))
     return claims
 

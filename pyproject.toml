@@ -45,12 +45,20 @@ ignore = ["S101"]
 # printing its findings to stdout is the entire point (T201).
 "scripts/*.py" = ["T201"]
 # src/claimcheck/cli is the documented entry point (`claimcheck src/`) —
-# printing findings to the terminal is its whole job (T201).
-"src/claimcheck/cli/*.py" = ["T201"]
+# printing findings to the terminal is its whole job (T201). `--diff` shells
+# out to `git` with a fixed argument list, cwd pinned to a resolved repo
+# path, no shell=True and no string interpolation into the command --
+# S603/S607 flag any subprocess.run call and any bare "git" lookup on
+# principle, but there is no untrusted input reaching the shell here.
+"src/claimcheck/cli/*.py" = ["T201", "S603", "S607"]
 # tests/fixtures/sample_repo is claim-extraction test data, not shipped code:
 # its exception messages are deliberately inline prose the extractor reads,
 # not something worth a named exception subclass (TRY003).
 "tests/fixtures/**/*.py" = ["TRY003"]
+# test_cli.py drives real `git` commands against tmp_path fixtures to prove
+# --diff's staged-file scoping; same fixed-argument-list, no-shell rationale
+# as the cli module itself (S603/S607).
+"tests/test_cli.py" = ["S603", "S607"]
 # adapters/anthropic_client.py tracks and prints real dollar spend after every live model call,
 # and the real SDK exception on any error -- an operator-facing cost/error signal this slice's
 # brief requires, not incidental debug output (T201).
