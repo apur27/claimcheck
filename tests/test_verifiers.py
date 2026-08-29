@@ -29,6 +29,7 @@ from claimcheck.domain.verifiers import (
 
 FIXTURE_REPO = Path(__file__).resolve().parent / "fixtures" / "sample_repo"
 RAINMAKER_REPO = Path("/home/abhi/git/rainmaker")
+TOMORO_TASK_REPO = Path("/home/abhi/git/tomoro-task")
 
 # The RainMaker cross-check tests below read a sibling repo that only exists on
 # a RainMaker orchestrator's own machine -- not vendored or fixtured here, so a
@@ -39,6 +40,14 @@ RAINMAKER_REPO = Path("/home/abhi/git/rainmaker")
 requires_rainmaker_repo = pytest.mark.skipif(
     not RAINMAKER_REPO.is_dir(),
     reason="cross-check reads a sibling rainmaker checkout not vendored in this repo",
+)
+
+# Same rationale as requires_rainmaker_repo, but for the sibling repo lc-001's
+# docstring-span regression case (and its labelled raises_propagates siblings)
+# were found against -- only present on a machine that has cloned it.
+requires_tomoro_task_repo = pytest.mark.skipif(
+    not TOMORO_TASK_REPO.is_dir(),
+    reason="cross-check reads a sibling tomoro-task checkout not vendored in this repo",
 )
 
 
@@ -82,6 +91,28 @@ def test_raises_propagates_ok_when_no_handler_exists_anywhere() -> None:
     )
     verdict = verify_raises_propagates(claim, FIXTURE_REPO)
     assert verdict.reason == "ok"
+
+
+@requires_tomoro_task_repo
+def test_raises_propagates_contradicted_when_claim_line_is_inside_docstring_span() -> None:
+    """lc-001: regression for a docstring-ownership check that used exact-line equality.
+
+    `FixtureMissError`'s docstring opens at line 19; the labelled claim's `line: 21` points at
+    the specific sentence inside that multi-line docstring ("PROPAGATES: ..."), not its first
+    line. The ownership check must treat any line within the docstring's span as belonging to
+    it, or this claim is wrongly reported `unverifiable` and the real, repo-wide handler search
+    (which does find `src/main.py:99`) never runs.
+    """
+    claim = _claim(
+        file="src/adapters/fixture_client.py",
+        line=21,
+        claim_text="PROPAGATES: no handler exists in this slice.",
+        shape="raises_propagates",
+        source="docstring",
+    )
+    verdict = verify_raises_propagates(claim, TOMORO_TASK_REPO)
+    assert verdict.reason == "contradicted"
+    assert "src/main.py:99" in verdict.evidence
 
 
 def test_raises_propagates_unverifiable_for_module_level_docstring() -> None:

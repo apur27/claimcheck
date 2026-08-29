@@ -93,7 +93,7 @@ def _iter_py_files(repo_root: Path) -> list[Path]:
     return files
 
 
-def _docstring_owner_line(node: _DocstringNode) -> int | None:
+def _docstring_span(node: _DocstringNode) -> tuple[int, int] | None:
     if not node.body:
         return None
     first = node.body[0]
@@ -101,7 +101,12 @@ def _docstring_owner_line(node: _DocstringNode) -> int | None:
         return None
     if not isinstance(first.value.value, str):
         return None
-    return first.lineno
+    return first.lineno, first.end_lineno or first.lineno
+
+
+def _docstring_spans_line(node: _DocstringNode, line: int) -> bool:
+    span = _docstring_span(node)
+    return span is not None and span[0] <= line <= span[1]
 
 
 def _function_spans_line(node: _FunctionNode, line: int) -> bool:
@@ -144,7 +149,7 @@ def _find_exception_name(tree: ast.Module, line: int) -> str | None:
     for node in ast.walk(tree):
         if not isinstance(node, ast.Module | ast.ClassDef | _FunctionNode):
             continue
-        if _docstring_owner_line(node) != line:
+        if not _docstring_spans_line(node, line):
             continue
         if isinstance(node, ast.ClassDef):
             return node.name if _is_exception_class(node) else None
