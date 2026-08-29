@@ -41,6 +41,9 @@ ignore = ["S101"]
 # scripts/check_exceptions.py is a standalone CLI check, not library code —
 # printing its findings to stdout is the entire point (T201).
 "scripts/*.py" = ["T201"]
+# src/claimcheck/cli is the documented entry point (`claimcheck src/`) —
+# printing findings to the terminal is its whole job (T201).
+"src/claimcheck/cli/*.py" = ["T201"]
 # tests/fixtures/sample_repo is claim-extraction test data, not shipped code:
 # its exception messages are deliberately inline prose the extractor reads,
 # not something worth a named exception subclass (TRY003).
