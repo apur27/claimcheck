@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "claimcheck-verifiers": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "${CLAIMCHECK_ROOT:-.}",
+        "python",
+        "mcp_server/scorer_server.py"
+      ],
+      "env": {}
+    }
+  }
+}

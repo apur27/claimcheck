@@ -24,5 +24,9 @@ clean:
 check-falsify:
 	uv run python scripts/check_falsify.py
 
+# Offline validation of this repo's own .claude/ scaffolding: CLAUDE.md, skills, the reviewer
+# agent, .mcp.json, and the MCP server's two separate invocations. It proves files parse and
+# paths resolve -- it cannot prove Claude Code loaded any of them. Run /context and /mcp in a
+# live session for that.
 harness-check:
-	@echo "harness-check: not yet implemented — lands in slice 4/session 2"
+	uv run python test/harness_check.py

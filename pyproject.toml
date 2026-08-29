@@ -63,6 +63,15 @@ ignore = ["S101"]
 # and the real SDK exception on any error -- an operator-facing cost/error signal this slice's
 # brief requires, not incidental debug output (T201).
 "src/claimcheck/adapters/anthropic_client.py" = ["T201"]
+# mcp_server/scorer_server.py is a standalone process, not library code. Its --selftest and
+# --check-imports modes report to stdout/stderr by design; that report IS the check's output
+# (T201). The stdio serve loop itself never prints.
+"mcp_server/*.py" = ["T201"]
+# test/harness_check.py is a standalone offline gate for this repo's .claude/ scaffolding.
+# Printing its findings is the point (T201). It runs the MCP server as a subprocess with a
+# fixed argv led by sys.executable and no shell (S603). Its per-artifact checks are inherently
+# branchy — each branch is one documented harness failure mode (PLR0912, C901).
+"test/harness_check.py" = ["T201", "S603", "PLR0912", "C901"]
 
 [tool.mypy]
 files = ["src", "scripts", "tests"]
