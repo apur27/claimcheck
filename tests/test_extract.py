@@ -49,6 +49,48 @@ def test_extract_claims_over_fixture_repo_matches_expected_exactly() -> None:
             shape="markdown_reference",
             source="markdown",
         ),
+        Claim(
+            file="README.md",
+            line=5,
+            claim_text="See `pkg/module_a.py` for the CustomError example.",
+            shape="markdown_reference",
+            source="markdown",
+        ),
+        Claim(
+            file="README.md",
+            line=6,
+            claim_text="See `docs/CHANGELOG.md` for release notes.",
+            shape="markdown_reference",
+            source="markdown",
+        ),
+        Claim(
+            file="pkg/module_b.py",
+            line=6,
+            claim_text="Returns an int product of a and b.",
+            shape="returns_type",
+            source="docstring",
+        ),
+        Claim(
+            file="pkg/module_b.py",
+            line=11,
+            claim_text="Returns a bool indicating whether the division succeeded.",
+            shape="returns_type",
+            source="docstring",
+        ),
+        Claim(
+            file="pkg/module_defaults.py",
+            line=8,
+            claim_text="default is 3 if not overridden.",
+            shape="defaults_to",
+            source="comment",
+        ),
+        Claim(
+            file="pkg/module_d.py",
+            line=2,
+            claim_text="PROPAGATES: no handler exists anywhere for LonelyError.",
+            shape="raises_propagates",
+            source="docstring",
+        ),
     ]
 
     assert sorted(claims, key=lambda c: (c.file, c.line)) == sorted(
@@ -80,10 +122,8 @@ def test_extract_claims_over_own_src_does_not_raise() -> None:
 def test_extract_claims_comment_claim_has_correct_line_number() -> None:
     """The tokenize pass recovers the comment's own line, not the statement's."""
     claims = extract_claims(FIXTURE_REPO)
-    comment_claims = [c for c in claims if c.source == "comment"]
-    assert len(comment_claims) == 1
-    assert comment_claims[0].line == 1
-    assert comment_claims[0].file == "pkg/module_defaults.py"
+    comment_claims = {(c.file, c.line): c for c in claims if c.source == "comment"}
+    assert comment_claims[("pkg/module_defaults.py", 1)].shape == "defaults_to"
 
 
 def test_extract_claims_skips_files_with_syntax_errors(tmp_path: Path) -> None:
