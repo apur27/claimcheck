@@ -22,7 +22,7 @@ clean:
 	find . -type d -name __pycache__ -exec rm -rf {} +
 
 check-falsify:
-	@echo "check-falsify: not yet implemented — lands in slice 4/session 2"
+	uv run python scripts/check_falsify.py
 
 harness-check:
 	@echo "harness-check: not yet implemented — lands in slice 4/session 2"
