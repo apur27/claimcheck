@@ -1,0 +1,22 @@
+[importlinter]
+root_package = claimcheck
+include_external_packages = True
+
+[importlinter:contract:layers]
+name = Dependencies point inward
+type = layers
+layers =
+    claimcheck.cli
+    claimcheck.services
+    claimcheck.domain
+
+[importlinter:contract:vendor-isolation]
+name = Vendor SDKs live in adapters only
+type = forbidden
+source_modules =
+    claimcheck.domain
+    claimcheck.services
+forbidden_modules =
+    anthropic
+    httpx
+    requests
